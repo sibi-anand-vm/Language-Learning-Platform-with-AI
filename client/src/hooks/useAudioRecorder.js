@@ -28,7 +28,7 @@ export const useAudioRecorder = (onUploadSuccess) => {
       mediaRecorderRef.current.start();
       setIsRecording(true);
     } catch (error) {
-      console.alert("Microphone error:", error);
+      alert("Microphone error:", error);
     }
   };
 
@@ -73,7 +73,7 @@ export const useAudioRecorder = (onUploadSuccess) => {
       }));
 
     } catch (err) {
-      console.alert("Upload error:", err);
+      alert("Upload error:", err);
       setFeedback(prev => ({
         ...prev,
         [currentWordIndexRef.current]: {

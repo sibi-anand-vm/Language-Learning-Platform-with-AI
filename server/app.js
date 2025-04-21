@@ -7,7 +7,7 @@ const authRoutes = require("./routes/authRoutes");
 const userRoutes = require('./routes/userRoutes.js');
 const lessonRoutes = require("./routes/lessonRoutes.js");
 const audioRoutes = require("./routes/audioRoutes");
-const pronunciationRoutes = require("./routes/pronunciation.js");
+const assessmentRoutes = require("./routes/assessmentRoutes");
 const authenticateJWT = require("./middleware/authMiddleware");
 
 const app = express();
@@ -21,7 +21,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/lessons", authenticateJWT, lessonRoutes);
 app.use("/api/user", authenticateJWT, userRoutes);
 app.use("/api/audio", authenticateJWT, audioRoutes);
-app.use("/api/pronunciation", authenticateJWT, pronunciationRoutes);
+app.use("/api/assessment", authenticateJWT, assessmentRoutes);
 
 const PORT = process.env.PORT || 4008;
 app.listen(PORT, () => {

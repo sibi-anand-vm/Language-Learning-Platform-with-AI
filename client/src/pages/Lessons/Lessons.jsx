@@ -83,7 +83,7 @@ const Lessons = () => {
           setWebsiteLessons(response.data);
         } catch (err) {
           setError(err.response?.data?.message || 'Failed to fetch website lessons');
-          console.alert('Error fetching website lessons:', err);
+          alert('Error fetching website lessons:', err);
         } finally {
           setIsLoading(false);
         }
@@ -109,7 +109,7 @@ const Lessons = () => {
           setUserLessons(response.data);
         } catch (err) {
           setError(err.response?.data?.message || 'Failed to fetch user lessons');
-          console.alert('Error fetching user lessons:', err);
+          alert('Error fetching user lessons:', err);
         } finally {
           setIsLoading(false);
         }
