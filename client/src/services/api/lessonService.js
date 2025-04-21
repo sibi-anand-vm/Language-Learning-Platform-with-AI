@@ -81,7 +81,7 @@ const lessonService = {
     } catch (error) {
       handleApiError(error);
     }
-  }
+  },
 };
 
 export { lessonService }; 

@@ -106,10 +106,13 @@ const Lessons = () => {
               Authorization: `Bearer ${token}`
             }
           });
-          setUserLessons(response.data);
+          // Ensure we're working with an array
+          const lessons = Array.isArray(response.data) ? response.data : [];
+          setUserLessons(lessons);
         } catch (err) {
           setError(err.response?.data?.message || 'Failed to fetch user lessons');
-          alert('Error fetching user lessons:', err);
+          console.error('Error fetching user lessons:', err);
+          setUserLessons([]); // Set empty array on error
         } finally {
           setIsLoading(false);
         }
@@ -119,7 +122,10 @@ const Lessons = () => {
     fetchUserLessons();
   }, [activeTab]);
 
-  const currentLessons = activeTab === 'website' ? websiteLessons : userLessons;
+  // Ensure currentLessons is always an array
+  const currentLessons = Array.isArray(activeTab === 'website' ? websiteLessons : userLessons) 
+    ? (activeTab === 'website' ? websiteLessons : userLessons)
+    : [];
 
   const handleCreateSuccess = (newLesson) => {
     setWebsiteLessons(prev => [...prev, newLesson]);
@@ -128,7 +134,12 @@ const Lessons = () => {
 
   const filteredLessons = currentLessons.filter(lesson => {
     try {
-      const lessonData = activeTab === 'website' ? lesson : lesson.lessonId;
+      const lessonData = activeTab === 'website' ? lesson : lesson.lessonId || lesson;
+      
+      // Skip if lessonData is not valid
+      if (!lessonData || typeof lessonData !== 'object') {
+        return false;
+      }
       
       const matchesLanguage = selectedLanguage === 'All' || 
         sanitizeText(lessonData.language) === sanitizeText(selectedLanguage);
@@ -288,12 +299,26 @@ const Lessons = () => {
         <>
           {/* Lessons Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredLessons.map((lesson) => (
-              <LessonCard 
-                key={activeTab === 'website' ? lesson._id : lesson._id} 
-                lesson={activeTab === 'website' ? lesson : lesson} 
-              />
-            ))}
+            {filteredLessons.map((lesson) => {
+              // Ensure we have a valid lesson object
+              if (!lesson || typeof lesson !== 'object') return null;
+              
+              // Get the lesson data based on the active tab
+              const lessonData = activeTab === 'website' ? lesson : lesson.lessonId || lesson;
+              
+              // Ensure we have a valid ID
+              if (!lessonData._id) return null;
+              
+              // Create a unique key combining the ID and a timestamp
+              const uniqueKey = `${lessonData._id}-${Date.now()}`;
+              
+              return (
+                <LessonCard 
+                  key={uniqueKey}
+                  lesson={lessonData} 
+                />
+              );
+            })}
           </div>
 
           {/* Empty State */}

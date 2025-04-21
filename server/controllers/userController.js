@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Lesson = require("../models/Lesson");
+const UserLesson = require("../models/UserLesson");
 const bcrypt = require("bcrypt");
 
 // Update user profile
@@ -44,22 +45,43 @@ exports.deleteUser = async (req, res) => {
     res.status(500).json({ message: "User deletion failed", error: err.message });
   }
 };
-// Get all lessons created by the user
+
+// Get user's lessons
 exports.getUserLessons = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const userLessons = await Lesson.find({ userId })
-      .populate("lessonId")
-      .lean(); // Use lean() for better performance
+    // Get lessons created by the user
+    const createdLessons = await Lesson.find({ createdBy: userId })
+      .select('-__v') // Exclude version field
+      .lean();
 
-    // Filter only lessons where createdBy === userId
-    const createdLessons = userLessons.filter(
-      (ul) => ul.lessonId && ul.lessonId.createdBy?.toString() === userId
-    );
+    // Get lessons the user has completed
+    const completedLessons = await UserLesson.find({ userId })
+      .populate('lessonId', '-__v')
+      .lean();
 
-    res.status(200).json(createdLessons);
+    // Combine lessons and remove duplicates
+    const lessonMap = new Map();
+    
+    // Add created lessons first
+    createdLessons.forEach(lesson => {
+      lessonMap.set(lesson._id.toString(), lesson);
+    });
+
+    // Add completed lessons, but don't override created ones
+    completedLessons.forEach(ul => {
+      if (ul.lessonId && !lessonMap.has(ul.lessonId._id.toString())) {
+        lessonMap.set(ul.lessonId._id.toString(), ul.lessonId);
+      }
+    });
+
+    // Convert map values back to array
+    const formattedLessons = Array.from(lessonMap.values());
+
+    res.status(200).json(formattedLessons);
   } catch (err) {
     res.status(500).json({ message: "Error fetching user lessons", error: err.message });
   }
 };
+

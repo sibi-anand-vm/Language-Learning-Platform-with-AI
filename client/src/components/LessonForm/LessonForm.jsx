@@ -140,8 +140,7 @@ const LessonForm = ({ onClose, onSuccess }) => {
                 <p className="mt-1 text-sm text-red-600">{errors.title}</p>
               )}
             </div>
-            
-            {/* Language and Difficulty */}
+           
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="language" className="block text-sm font-medium text-gray-700">

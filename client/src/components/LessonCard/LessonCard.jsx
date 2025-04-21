@@ -25,9 +25,9 @@ const LessonCard = ({ lesson }) => {
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
           <span className="text-4xl">
-            {language === 'French' ? '🇫🇷' : 
-             language === 'Spanish' ? '🇪🇸' : 
-             language === 'German' ? '🇩🇪' : '🌐'}
+            {language === 'fr' ? '🇫🇷' : 
+             language === 'es' ? '🇪🇸' : 
+             language === 'de' ? '🇩🇪' : '🌐'}
           </span>
           <span className="text-sm font-medium text-gray-500">
             {vocab?.length || 0} words

@@ -59,7 +59,6 @@ export const useAudioRecorder = (onUploadSuccess) => {
       }
 
       if (onUploadSuccess) {
-        console.log(data);
         onUploadSuccess(data.secure_url);
       }
 
