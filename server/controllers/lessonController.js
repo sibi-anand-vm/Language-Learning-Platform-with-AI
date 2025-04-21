@@ -1,52 +1,78 @@
 const Lesson = require("../models/Lesson");
-const UserLesson=require("../models/UserLesson")
+const UserLesson = require("../models/UserLesson");
+
+// Get all website-created lessons
 const getAllLessons = async (req, res) => {
   try {
-    const lessons = await Lesson.find();
+    const lessons = await Lesson.find({ createdBy: null }); // Only website lessons
     res.json(lessons);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
+// Get lesson by ID (can be any type)
 const getLessonById = async (req, res) => {
-    try {
-      const lesson = await Lesson.findById(req.params.id);
-      if (!lesson) return res.status(404).json({ message: "Lesson not found" });
-      res.status(200).json(lesson);
-    } catch (err) {
-      res.status(500).json({ message: err.message });
-    }
+  try {
+    const lesson = await Lesson.findById(req.params.id);
+    if (!lesson) return res.status(404).json({ message: "Lesson not found" });
+    res.status(200).json(lesson);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
+
 const createLesson = async (req, res) => {
-    const { title, language, difficulty, content, vocab } = req.body;
-    const userId = req.user.id;
-  
-    try {
-      
-      if (!title || !language || !difficulty || !content || !vocab) {
-        return res.status(400).json({ message: "All fields are required" });
-      }
-  
-      // Create a new lesson
-      const lesson = new Lesson({ title, language, difficulty, content, vocab });
-      await lesson.save();
-  
-      // Create a relationship entry
-      const userLesson = new UserLesson({
-        userId,
-        lessonId: lesson._id
-      });
-  
-      await userLesson.save();
-  
-      
-      res.status(201).json(lesson);
-    } catch (err) {
-      console.error("Error creating lesson:", err.message);
-      res.status(500).json({ message: "Error creating lesson", error: err.message });
+  const { title, language, difficulty, content, vocab } = req.body;
+  const userId = req.user.id;
+
+  try {
+    if (!title || !language || !difficulty || !content || !vocab) {
+      return res.status(400).json({ message: "All fields are required" });
     }
-  };
+
+    // Validate language
+    if (!['English', 'Spanish', 'French', 'German', 'Chinese'].includes(language)) {
+      return res.status(400).json({ message: "Invalid language" });
+    }
+
+    // Validate difficulty
+    if (!['beginner', 'intermediate', 'advanced'].includes(difficulty)) {
+      return res.status(400).json({ message: "Invalid difficulty level" });
+    }
+
+    // Store lesson with createdBy field
+    const lesson = new Lesson({
+      title,
+      language,
+      difficulty,
+      content,
+      vocab,
+      createdBy: userId,
+    });
+
+    await lesson.save();
+
+    // Store reference in UserLesson
+    const userLesson = new UserLesson({
+      userId,
+      lessonId: lesson._id,
+    });
+
+    await userLesson.save();
+
+    // Return the full UserLesson object with populated lessonId
+    const populatedUserLesson = await UserLesson.findById(userLesson._id)
+      .populate('lessonId')
+      .lean();
+
+    res.status(201).json(populatedUserLesson);
+  } catch (err) {
+    
+    res.status(500).json({ message: "Error creating lesson", error: err.message });
+  }
+};
+
 // Update a lesson
 const updateLesson = async (req, res) => {
   try {
@@ -60,10 +86,15 @@ const updateLesson = async (req, res) => {
   }
 };
 
+// Delete a lesson
 const deleteLesson = async (req, res) => {
   try {
     const deleted = await Lesson.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: "Lesson not found" });
+
+    // Also delete from UserLesson if it exists
+    await UserLesson.deleteMany({ lessonId: req.params.id });
+
     res.json({ message: "Lesson deleted successfully" });
   } catch (err) {
     res.status(400).json({ message: err.message });

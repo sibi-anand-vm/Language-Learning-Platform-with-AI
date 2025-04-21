@@ -8,7 +8,7 @@ const lessonSchema = new mongoose.Schema({
   language: { 
     type: String, 
     required: true,
-    enum: ['English', 'Spanish', 'French', 'German', 'Chinese'],  // You can expand the list of languages as needed
+    enum: ['English', 'Spanish', 'French', 'German', 'Chinese'],
   },
   difficulty: {
     type: String,
@@ -22,9 +22,14 @@ const lessonSchema = new mongoose.Schema({
   vocab: [
     {
       word: { type: String, required: true },  
-      translation: { type: String, required: true },  // Required field to ensure translation exists
+      translation: { type: String, required: true },
     },
   ],
-}, { timestamps: true });  // Add timestamps for createdAt and updatedAt automatically
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null, // null means created by system
+  }
+}, { timestamps: true });
 
 module.exports = mongoose.model("Lesson", lessonSchema);
