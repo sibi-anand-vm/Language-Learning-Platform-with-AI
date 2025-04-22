@@ -40,30 +40,6 @@ server/
    npm start
    ```
 
-## API Endpoints
-
-### Authentication
-- POST /api/auth/register - Register a new user
-- POST /api/auth/login - Login user
-- GET /api/auth/verify - Verify JWT token
-
-### User
-- GET /api/user/profile - Get user profile
-- PUT /api/user/updateprofile - Update user profile
-- GET /api/user/lessons - Get user's lessons
-- GET /api/user/stats - Get user statistics
-
-### Lessons
-- GET /api/lessons - Get all lessons
-- POST /api/lessons - Create new lesson
-- GET /api/lessons/:id - Get lesson by ID
-- PUT /api/lessons/:id - Update lesson
-- DELETE /api/lessons/:id - Delete lesson
-
-### Assessment
-- POST /api/assessment/evaluate - Evaluate pronunciation
-- GET /api/assessment/feedbacks - Get user feedbacks
-
 ## Development
 
 - Run in development mode:
