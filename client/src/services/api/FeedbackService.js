@@ -5,7 +5,7 @@ function validateFeedbackRequestData(data) {
     throw new Error('Invalid feedback request data');
   }
 }
-
+const API_URL = 'http://localhost:4008/api';
 function getAuthHeader() {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -38,21 +38,38 @@ function handleApiError(error) {
 }
 
 const FeedbackService = {
-  async generateFeedback({ audioUrl, word, language }) {
+  async generateFeedback({ audioUrl, word, language, lessonId }) {
     try {
-      validateFeedbackRequestData({ audioUrl, word, language });
-      const headers = getAuthHeader();
+      // Validate required fields
+      if (!audioUrl || !word || !language || !lessonId) {
+        throw new Error('Missing required fields: audioUrl, word, language, and lessonId are required');
+      }
 
-      const response = await axios({
-        method: 'POST',
-        url: 'http://localhost:4008/api/assessment/evaluate',
-        data: { audioUrl, word, language },
-        headers
-      });
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await axios.post(
+        `${API_URL}/assessment/evaluate`,
+        {
+          audioUrl,
+          word,
+          language,
+          lessonId
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
 
       return response.data;
     } catch (error) {
-      handleApiError(error);
+      console.error('API Error:', error);
+      throw this.handleApiError(error);
     }
   },
 

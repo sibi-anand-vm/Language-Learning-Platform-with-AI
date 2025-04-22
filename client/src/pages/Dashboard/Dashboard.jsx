@@ -1,6 +1,7 @@
-import React from 'react';
-import { useAuth } from '../../hooks/useAuth';
-
+import React,{useState,useEffect} from 'react';
+import { useAuth} from '../../hooks/useAuth';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 // Placeholder data (will be replaced with real data from API)
 const progressData = {
   lessonsCompleted: 12,
@@ -9,15 +10,41 @@ const progressData = {
   streak: 7
 };
 
-const recentLessons = [
-  { id: 1, title: 'Basic Greetings', language: 'Spanish', score: 90, date: '2024-02-20' },
-  { id: 2, title: 'Numbers 1-20', language: 'French', score: 85, date: '2024-02-19' },
-  { id: 3, title: 'Common Phrases', language: 'German', score: 78, date: '2024-02-18' }
-];
+
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [feedbacks, setFeedbacks] = useState([]);
 
+  useEffect(() => {
+    const fetchFeedbacks = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error('No authentication token found');
+          return;
+        }
+
+        const res = await axios.get("http://localhost:4008/api/assessment/feedbacks", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        const recentFeedbacks = res.data.slice(-3).reverse();
+        setFeedbacks(recentFeedbacks);
+      } catch (error) {
+        console.error("Error fetching feedbacks:", error);
+        if (error.response?.status === 403) {
+          console.error("Authentication failed. Please log in again.");
+          // Optionally redirect to login page or show a message
+        }
+      }
+    };
+
+    fetchFeedbacks();
+  }, []);
   return (
     <>
       {/* Header */}
@@ -26,11 +53,6 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-gray-900">
             Welcome back, {user?.username || 'Learner'}!
           </h1>
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-600">
-              🔥 {progressData.streak} Day Streak
-            </div>
-          </div>
         </div>
       </div>
 
@@ -142,66 +164,47 @@ const Dashboard = () => {
           </h3>
         </div>
         <div className="divide-y divide-gray-200">
-          {recentLessons.map((lesson) => (
-            <div key={lesson.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 cursor-pointer">
+          {feedbacks.map((feedback) => (
+            <div key={feedback._id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 cursor-pointer">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
                       <span className="text-indigo-600 font-medium">
-                        {lesson.language.charAt(0)}
+                        {feedback.language?.charAt(0) || 'L'}
                       </span>
                     </div>
                   </div>
                   <div className="ml-4">
                     <div className="text-sm font-medium text-indigo-600">
-                      {lesson.title}
+                      {feedback.word || 'Unknown Word'}
                     </div>
                     <div className="text-sm text-gray-500">
-                      {lesson.language}
+                      Accuracy: {Math.round(feedback.accuracyMarks || 0)}%
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center">
                   <div className="text-sm text-gray-900 mr-4">
-                    Score: {lesson.score}%
+                    Score: {Math.round(feedback.finalMarks || 0)}%
                   </div>
                   <div className="text-sm text-gray-500">
-                    {new Date(lesson.date).toLocaleDateString()}
+                    {new Date(feedback.timestamp).toLocaleDateString()}
                   </div>
                 </div>
               </div>
             </div>
           ))}
+          {feedbacks.length === 0 && (
+            <div className="px-4 py-4 sm:px-6 text-center text-gray-500">
+              No recent lessons found
+            </div>
+          )}
         </div>
       </div>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div className="bg-indigo-600 overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <h3 className="text-lg font-medium text-white truncate">
-                  Practice Pronunciation
-                </h3>
-                <p className="mt-1 text-sm text-indigo-100">
-                  Start a new pronunciation session
-                </p>
-              </div>
-            </div>
-            <div className="mt-4">
-              <button className="bg-white text-indigo-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-50 transition-colors">
-                Start Practice
-              </button>
-            </div>
-          </div>
-        </div>
 
         <div className="bg-green-600 overflow-hidden shadow rounded-lg">
           <div className="p-5">
@@ -221,7 +224,7 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="mt-4">
-              <button className="bg-white text-green-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-green-50 transition-colors">
+              <button className="bg-white text-green-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-green-50 transition-colors" onClick={() => navigate('/lessons')}>
                 Begin Lesson
               </button>
             </div>

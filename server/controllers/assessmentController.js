@@ -1,88 +1,104 @@
 const { transcribeAudioWithAssemblyAI } = require('../services/speechToTextService');
 const { calculatePitchIntensityMarks } = require('../services/pitchIntensityService');
 const { logError } = require('../utils/errorLogger');
+const Assessment = require('../models/Assessment');
+
+
+
+async function getFeedbacks(req,res){
+  try{
+    const feedbacks = await Assessment.find({userId:req.user.id});
+    res.json(feedbacks);
+  }catch(error){
+    logError('Error fetching feedbacks',error);
+    res.status(500).json({error:'Failed to fetch feedbacks'});
+  }
+}
+
 
 async function evaluatePronunciation(req, res) {
   try {
     console.log('Received assessment request:', {
       audioUrl: req.body.audioUrl,
       word: req.body.word,
-      language: req.body.language
+      language: req.body.language,
+      lessonId: req.body.lessonId
     });
 
-    const { audioUrl, word, language } = req.body;
+    const { audioUrl, word, language, lessonId } = req.body;
 
-    if (!audioUrl || !word || !language) {
-      console.error('Missing required fields:', { audioUrl, word, language });
+    if (!audioUrl || !word || !language || !lessonId) {
       return res.status(400).json({ 
         error: 'Missing required fields',
         details: {
           audioUrl: !audioUrl,
           word: !word,
-          language: !language
+          language: !language,
+          lessonId: !lessonId
         }
       });
     }
 
-    // Step 1: Calculate pitch and intensity first
-    console.log('Calculating pitch and intensity marks...');
+    // Step 1: Calculate pitch and intensity
     let pitchIntensityMarks;
     try {
       pitchIntensityMarks = await calculatePitchIntensityMarks(audioUrl);
-      console.log('Pitch and intensity marks:', pitchIntensityMarks);
-
-      // If voice not detected or too low marks
-      if (pitchIntensityMarks < 30) {
-        return res.status(200).json({
-          error: 'No voice in audio',
+      if (pitchIntensityMarks < 45) {
+        const noVoiceFeedback = {
+          word,
           transcribedText: '',
           accuracyMarks: 0,
           pitchIntensityMarks,
           finalMarks: 0,
           feedback: ['No voice detected. Please speak clearly and try again.']
-        });
-      }
+        };
 
+        await Assessment.create({
+          userId: req.user.id,
+          lessonId,
+          ...noVoiceFeedback
+        });
+
+        return res.status(200).json(noVoiceFeedback);
+      }
     } catch (pitchError) {
-      console.error('Pitch calculation failed:', pitchError);
       throw new Error(`Pitch analysis failed: ${pitchError.message}`);
     }
 
     // Step 2: Transcribe audio
-    console.log('Starting audio transcription...');
     let transcribedText;
     try {
       transcribedText = await transcribeAudioWithAssemblyAI(audioUrl, language);
-      console.log('Transcription successful:', transcribedText);
-
       if (!transcribedText || transcribedText.trim().length === 0) {
-        return res.status(200).json({
-          error: 'No voice in audio',
+        const noVoiceFeedback = {
+          word,
           transcribedText: '',
           accuracyMarks: 0,
           pitchIntensityMarks,
           finalMarks: 0,
           feedback: ['No voice detected. Please speak clearly and try again.']
-        });
-      }
+        };
 
+        await Assessment.create({
+          userId: req.user.id,
+          lessonId,
+          ...noVoiceFeedback
+        });
+
+        return res.status(200).json(noVoiceFeedback);
+      }
     } catch (transcriptionError) {
-      console.error('Transcription failed:', transcriptionError);
       throw new Error(`Transcription failed: ${transcriptionError.message}`);
     }
 
-    // Step 3: Calculate accuracy marks
-    console.log('Calculating accuracy marks...');
+    // Step 3: Accuracy calculation
     const accuracyMarks = calculateAccuracyMarks(transcribedText, word);
-    console.log('Accuracy marks:', accuracyMarks);
 
-    // Step 4: Final weighted average
+    // Step 4: Final score
     const finalMarks = (accuracyMarks * 0.6) + (pitchIntensityMarks * 0.4);
-    console.log('Final marks:', finalMarks);
 
     // Step 5: Feedback
     const feedback = generateFeedback(accuracyMarks, pitchIntensityMarks);
-    console.log('Generated feedback:', feedback);
 
     const response = {
       word,
@@ -92,17 +108,20 @@ async function evaluatePronunciation(req, res) {
       finalMarks,
       feedback
     };
-    
-    console.log('Sending response:', response);
+
+    await Assessment.create({
+      userId: req.user.id,
+      lessonId,
+      ...response
+    });
+
     res.json(response);
 
   } catch (error) {
-    console.error('Assessment error:', error);
     logError('Assessment error', error);
     res.status(500).json({ 
       error: 'Failed to evaluate pronunciation',
-      message: error.message,
-      details: error.stack
+      message: error.message
     });
   }
 }
@@ -110,20 +129,16 @@ async function evaluatePronunciation(req, res) {
 function calculateAccuracyMarks(transcribedText, expectedWord) {
   const transcribed = transcribedText.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '');
   const expected = expectedWord.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '');
-
   const distance = levenshteinDistance(transcribed, expected);
   const maxLength = Math.max(transcribed.length, expected.length);
   const accuracy = ((maxLength - distance) / maxLength) * 100;
-
   return accuracy;
 }
 
 function levenshteinDistance(a, b) {
   const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
-
   for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
   for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
-
   for (let j = 1; j <= b.length; j++) {
     for (let i = 1; i <= a.length; i++) {
       const substitutionCost = a[i - 1] === b[j - 1] ? 0 : 1;
@@ -134,7 +149,6 @@ function levenshteinDistance(a, b) {
       );
     }
   }
-
   return matrix[b.length][a.length];
 }
 
@@ -161,5 +175,6 @@ function generateFeedback(accuracyMarks, pitchIntensityMarks) {
 }
 
 module.exports = {
+  getFeedbacks,
   evaluatePronunciation
 };

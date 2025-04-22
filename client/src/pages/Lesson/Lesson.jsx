@@ -48,6 +48,7 @@ const Lesson = () => {
         audioUrl,
         word,
         language,
+        lessonId: id
       });
       
       setFeedback(prev => ({
@@ -61,7 +62,7 @@ const Lesson = () => {
     } finally {
       setIsGeneratingFeedback(false);
     }
-  }, [currentWordIndex]);
+  }, [currentWordIndex, id]);
 
   // Handle recording completion
   const handleRecordingComplete = useCallback(async (audioUrl) => {
