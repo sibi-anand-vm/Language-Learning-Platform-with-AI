@@ -262,19 +262,7 @@ const Lessons = () => {
             )}
           </div>
 
-          {/* Language Filter */}
-          <select
-            value={selectedLanguage}
-            onChange={(e) => setSelectedLanguage(e.target.value)}
-            className="block w-full sm:w-48 pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
-          >
-            {languages.map(language => (
-              <option key={`language-${language}`} value={language}>
-                {language === 'All' ? 'All Languages' : language}
-              </option>
-            ))}
-          </select>
-
+         
           {/* Level Filter */}
           <select
             value={selectedLevel}

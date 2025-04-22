@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const FeedbackDisplay = ({ feedback }) => {
-  if (!feedback) return <h1>Feedback not recieved yet</h1>;
+  if (!feedback) return <h1>After stop recording,wait for few seconds.</h1>;
   return (
     <div className="mb-6 p-6 border rounded-lg bg-white shadow-xl hover:shadow-2xl transition-shadow">
       <h3 className="text-2xl font-semibold text-gray-900 mb-4 border-b pb-2">Feedback Summary</h3>

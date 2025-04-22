@@ -1,50 +1,80 @@
-import React,{useState,useEffect} from 'react';
-import { useAuth} from '../../hooks/useAuth';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../hooks/useAuth';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-// Placeholder data (will be replaced with real data from API)
-const progressData = {
-  lessonsCompleted: 12,
-  totalLessons: 30,
-  averageScore: 85,
-  streak: 7
-};
-
-
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [feedbacks, setFeedbacks] = useState([]);
+  const [stats, setStats] = useState({
+    totalLessons: 0,
+    completedLessons: 0,
+    averageScore: 0,
+    lessonsByLanguage: {},
+    recentActivity: [],
+    uniqueLessonsCount: 0,
+    uniqueWordsCount: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchFeedbacks = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
-          console.error('No authentication token found');
-          return;
+          throw new Error('No authentication token found');
         }
 
-        const res = await axios.get("http://localhost:4008/api/assessment/feedbacks", {
+        // Fetch user statistics
+        const statsResponse = await axios.get('http://localhost:4008/api/user/stats', {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
-        
-        const recentFeedbacks = res.data.slice(-3).reverse();
-        setFeedbacks(recentFeedbacks);
+        setStats(statsResponse.data);
+
+        // Fetch recent feedbacks
+        const feedbacksResponse = await axios.get('http://localhost:4008/api/assessment/feedbacks', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setFeedbacks(feedbacksResponse.data.slice(-3).reverse()); // Get the last 3 feedbacks
       } catch (error) {
-        console.error("Error fetching feedbacks:", error);
-        if (error.response?.status === 403) {
-          console.error("Authentication failed. Please log in again.");
-          // Optionally redirect to login page or show a message
-        }
+        console.error('Error fetching dashboard data:', error);
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchFeedbacks();
+    fetchData();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-red-500 mb-4">Error: {error}</div>
+        <button
+          onClick={() => window.location.reload()}
+          className="text-indigo-600 hover:text-indigo-500"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Header */}
@@ -53,6 +83,11 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-gray-900">
             Welcome back, {user?.username || 'Learner'}!
           </h1>
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-gray-600">
+              🔥 {stats.completedLessons} Lessons Completed
+            </div>
+          </div>
         </div>
       </div>
 
@@ -73,7 +108,7 @@ const Dashboard = () => {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      {progressData.lessonsCompleted}/{progressData.totalLessons}
+                      {stats.completedLessons}/{stats.totalLessons}
                     </div>
                   </dd>
                 </dl>
@@ -97,7 +132,7 @@ const Dashboard = () => {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      {progressData.averageScore}%
+                      {stats.averageScore}%
                     </div>
                   </dd>
                 </dl>
@@ -117,11 +152,11 @@ const Dashboard = () => {
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-500 truncate">
-                    Study Time
+                    Time Spent
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      2.5h
+                      {Math.round(stats.uniqueLessonsCount * 10)} min
                     </div>
                   </dd>
                 </dl>
@@ -146,7 +181,7 @@ const Dashboard = () => {
                   </dt>
                   <dd className="flex items-baseline">
                     <div className="text-2xl font-semibold text-gray-900">
-                      156
+                      {stats.uniqueWordsCount}
                     </div>
                   </dd>
                 </dl>
@@ -160,11 +195,11 @@ const Dashboard = () => {
       <div className="bg-white shadow rounded-lg mb-8">
         <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
           <h3 className="text-lg leading-6 font-medium text-gray-900">
-            Recent Lessons
+            Recent Activity
           </h3>
         </div>
         <div className="divide-y divide-gray-200">
-          {feedbacks.map((feedback) => (
+        {feedbacks.map((feedback) => (
             <div key={feedback._id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 cursor-pointer">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -202,9 +237,37 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+    
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div className="bg-indigo-600 overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <h3 className="text-lg font-medium text-white truncate">
+                  Practice Pronunciation
+                </h3>
+                <p className="mt-1 text-sm text-indigo-100">
+                  Start a new pronunciation session
+                </p>
+              </div>
+            </div>
+            <div className="mt-4">
+              <button 
+                onClick={() => navigate('/lessons')}
+                className="bg-white text-indigo-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-50 transition-colors"
+              >
+                Start Practice
+              </button>
+            </div>
+          </div>
+        </div>
 
         <div className="bg-green-600 overflow-hidden shadow rounded-lg">
           <div className="p-5">
@@ -224,7 +287,10 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="mt-4">
-              <button className="bg-white text-green-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-green-50 transition-colors" onClick={() => navigate('/lessons')}>
+              <button 
+                onClick={() => navigate('/lessons')}
+                className="bg-white text-green-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-green-50 transition-colors"
+              >
                 Begin Lesson
               </button>
             </div>

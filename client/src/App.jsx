@@ -11,13 +11,12 @@ import Home from './pages/Home/Home';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Lessons from './pages/Lessons/Lessons'
 import Lesson from './pages/Lesson/Lesson';
+import UserProfile from './pages/Profile/UserProfile';
 
 // Protected Components
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import ProtectedLayout from './components/layout/ProtectedLayout';
 
-// Placeholder components (to be implemented)
-const Profile = () => <div>Profile (Coming Soon)</div>;
 
 function App() {
   return (
@@ -66,7 +65,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ProtectedLayout>
-                    <Profile />
+                    <UserProfile />
                   </ProtectedLayout>
                 </ProtectedRoute>
               }
