@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
-
+import { useNavigate } from 'react-router-dom';
 const LessonForm = ({ onClose, onSuccess }) => {
+ const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     title: '',
     language: 'French',
@@ -87,13 +89,14 @@ const LessonForm = ({ onClose, onSuccess }) => {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:4008/api/lessons', formData, {
+      const response = await axios.post('https://language-learning-platform-with-ai-40z4.onrender.com/api/lessons', formData, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
       
       onSuccess(response.data);
+      navigate("/lessons");
       onClose();
     } catch (err) {
       setErrors({

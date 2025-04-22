@@ -5,7 +5,7 @@ function validateFeedbackRequestData(data) {
     throw new Error('Invalid feedback request data');
   }
 }
-const API_URL = 'http://localhost:4008/api';
+const API_URL = 'https://language-learning-platform-with-ai-40z4.onrender.com/api';
 function getAuthHeader() {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -78,7 +78,7 @@ const FeedbackService = {
       const headers = getAuthHeader();
       const response = await axios({
         method: 'GET',
-        url: `http://localhost:4008/api/assessment/feedback/${id}`,
+        url: `https://language-learning-platform-with-ai-40z4.onrender.com/api/assessment/feedback/${id}`,
         headers
       });
 

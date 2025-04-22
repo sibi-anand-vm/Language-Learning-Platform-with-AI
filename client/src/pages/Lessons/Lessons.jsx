@@ -75,7 +75,7 @@ const Lessons = () => {
         setError(null);
         try {
           const token = localStorage.getItem('token');
-          const response = await axios.get('http://localhost:4008/api/lessons', {
+          const response = await axios.get('https://language-learning-platform-with-ai-40z4.onrender.com/api/lessons', {
             headers: {
               Authorization: `Bearer ${token}`
             }
@@ -101,7 +101,7 @@ const Lessons = () => {
         setError(null);
         try {
           const token = localStorage.getItem('token');
-          const response = await axios.get('http://localhost:4008/api/user/lessons', {
+          const response = await axios.get('https://language-learning-platform-with-ai-40z4.onrender.com/api/user/lessons', {
             headers: {
               Authorization: `Bearer ${token}`
             }

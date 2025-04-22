@@ -39,7 +39,7 @@ const UserProfile = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await axios.get('http://localhost:4008/api/user/stats', {
+      const response = await axios.get('https://language-learning-platform-with-ai-40z4.onrender.com/api/user/stats', {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -101,7 +101,7 @@ const UserProfile = () => {
       }
 
       const response = await axios.put(
-        'http://localhost:4008/api/user/updateprofile',
+        'https://language-learning-platform-with-ai-40z4.onrender.com/api/user/updateprofile',
         updateData,
         {
           headers: {

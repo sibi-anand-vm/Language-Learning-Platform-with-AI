@@ -3,14 +3,12 @@ import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 const LessonCard = ({ lesson }) => {
-  // Determine if this is a user lesson or a website lesson
+
   const isUserLesson = lesson.lessonId !== undefined;
-  
-  // Extract lesson data based on the structure
+ 
   const lessonData = isUserLesson ? lesson.lessonId : lesson;
   const lessonId = isUserLesson ? lesson.lessonId._id : lesson._id;
-  
-  // Extract other properties
+ 
   const {
     title,
     language,
@@ -61,7 +59,7 @@ const LessonCard = ({ lesson }) => {
 
 LessonCard.propTypes = {
   lesson: PropTypes.oneOfType([
-    // Website lesson structure
+   
     PropTypes.shape({
       _id: PropTypes.string.isRequired,
       title: PropTypes.string.isRequired,
@@ -77,7 +75,7 @@ LessonCard.propTypes = {
       ),
       steps: PropTypes.array
     }),
-    // User lesson structure
+    
     PropTypes.shape({
       _id: PropTypes.string.isRequired,
       userId: PropTypes.string.isRequired,

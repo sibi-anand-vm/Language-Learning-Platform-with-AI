@@ -22,7 +22,7 @@ const Navbar = () => {
           <div className="flex flex-1">
             <div className="flex-shrink-0 flex items-center">
               <Link to="/dashboard" className="text-2xl font-bold text-indigo-600">
-                AI Tutor
+                AI Language Learning Tutor 
               </Link>
             </div>
             <div className="hidden sm:flex sm:space-x-8 flex-1 justify-center">

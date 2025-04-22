@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:4008/api/auth';
+const API_URL = 'https://language-learning-platform-with-ai-40z4.onrender.com/api/auth';
 
 const authService = {
   login: async (credentials) => {

@@ -71,7 +71,6 @@ function App() {
               }
             />
 
-            {/* Redirect root to dashboard or login */}
             <Route
               path="*"
               element={<Navigate to="/dashboard" replace />}

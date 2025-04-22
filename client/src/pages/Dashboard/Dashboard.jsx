@@ -28,7 +28,7 @@ const Dashboard = () => {
         }
 
         // Fetch user statistics
-        const statsResponse = await axios.get('http://localhost:4008/api/user/stats', {
+        const statsResponse = await axios.get('https://language-learning-platform-with-ai-40z4.onrender.com/api/user/stats', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -36,7 +36,7 @@ const Dashboard = () => {
         setStats(statsResponse.data);
 
         // Fetch recent feedbacks
-        const feedbacksResponse = await axios.get('http://localhost:4008/api/assessment/feedbacks', {
+        const feedbacksResponse = await axios.get('https://language-learning-platform-with-ai-40z4.onrender.com/api/assessment/feedbacks', {
           headers: {
             Authorization: `Bearer ${token}`
           }
