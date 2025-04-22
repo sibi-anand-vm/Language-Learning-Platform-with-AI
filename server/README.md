@@ -25,6 +25,7 @@ server/
 
 1. Install dependencies:
    ```bash
+   cd server
    npm install
    ```
 
@@ -33,28 +34,15 @@ server/
    PORT=4008
    MONGODB_URI=your_mongodb_uri
    JWT_SECRET=your_jwt_secret
+   HUGGINGFACE_API_KEY=yourhuggingfaceapi
+   ASSEMBLYAI_API_KEY=yourassemblyAIapi
+
    ```
 
 3. Start the server:
    ```bash
    npm start
    ```
-
-## Development
-
-- Run in development mode:
-  ```bash
-  npm run dev
-  ```
-
-- Run tests:
-  ```bash
-  npm test
-  ```
-
-## Error Handling
-
-The server uses a centralized error handling system. All errors are logged and appropriate responses are sent to the client.
 
 ## Security
 
