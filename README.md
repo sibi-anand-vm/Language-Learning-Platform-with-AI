@@ -87,3 +87,6 @@ If you encounter any issues:
 3. Verify that all dependencies are installed
 4. Check the console for any error messages
 
+## AI Tools Used
+1.ChatGPT
+2.GitHub
