@@ -29,21 +29,21 @@ async function calculatePitchIntensityMarks(audioUrl) {
         }
       })
       .on('end', () => {
-        // Normalize to a 0–40 mark scale
+       
         let marks;
-        if (volumeLevel >= -10) marks = 100; // Shouting
-else if (volumeLevel >= -20) marks = 90; // Loud
-else if (volumeLevel >= -35) marks = 80; // Normal
-else if (volumeLevel >= -45) marks = 60; // Soft
+        if (volumeLevel >= -10) marks = 100; 
+else if (volumeLevel >= -20) marks = 90; 
+else if (volumeLevel >= -35) marks = 80; 
+else if (volumeLevel >= -45) marks = 60;
 else marks = 20;
 
         resolve(marks);
       })
       .on('error', (err) => {
         console.error('FFmpeg error:', err);
-        resolve(20); // Default if error
+        resolve(20); 
       })
-      .saveToFile('/dev/null'); // FFmpeg trick for processing without output
+      .saveToFile('/dev/null'); 
   });
 }
 

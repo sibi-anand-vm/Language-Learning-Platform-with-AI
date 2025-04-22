@@ -20,7 +20,7 @@ async function transcribeAudioWithAssemblyAI(audioUrl, languageCode) {
       },
       { 
         headers: { authorization: apiKey },
-        timeout: 30000 // 30 seconds timeout
+        timeout: 30000 
       }
     );
 
@@ -30,7 +30,7 @@ async function transcribeAudioWithAssemblyAI(audioUrl, languageCode) {
     // Step 2: Poll for the transcription result
     let transcript;
     let attempts = 0;
-    const maxAttempts = 20; // Maximum 20 attempts (about 1 minute)
+    const maxAttempts = 20; 
 
     while (!transcript || transcript.status !== 'completed') {
       if (attempts >= maxAttempts) {

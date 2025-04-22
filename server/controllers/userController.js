@@ -13,39 +13,33 @@ exports.updateUserProfile = async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Update username and profile picture if provided
+    
     if (username) user.username = username;
     if (profilePic) user.profilePic = profilePic;
 
     let passwordChanged = false;
 
-    // Handle password change if requested
     if (newPassword) {
       if (!currentPassword) {
         return res.status(400).json({ message: "Current password is required to change password" });
       }
 
-      // Verify current password
       const isMatch = await bcrypt.compare(currentPassword, user.password);
       if (!isMatch) {
         return res.status(400).json({ message: "Current password is incorrect" });
       }
 
-      // Validate new password
       if (newPassword.length < 6) {
         return res.status(400).json({ message: "New password must be at least 6 characters long" });
       }
 
-      // Hash and set new password
       const hashed = await bcrypt.hash(newPassword, 10);
       user.password = hashed;
       passwordChanged = true;
     }
 
-    // Save changes
     const updatedUser = await user.save();
 
-    // Return updated user without sensitive data
     const userResponse = {
       _id: updatedUser._id,
       username: updatedUser.username,
@@ -55,7 +49,6 @@ exports.updateUserProfile = async (req, res) => {
       updatedAt: updatedUser.updatedAt
     };
 
-    // Generate new token if password was changed
     let token = null;
     if (passwordChanged) {
       token = jwt.sign(
@@ -68,7 +61,7 @@ exports.updateUserProfile = async (req, res) => {
     res.status(200).json({ 
       message: "Profile updated successfully", 
       user: userResponse,
-      token: token // Only included if password was changed
+      token: token 
     });
   } catch (err) {
     res.status(500).json({ 
@@ -79,6 +72,7 @@ exports.updateUserProfile = async (req, res) => {
 };
 
 // Delete user
+
 exports.deleteUser = async (req, res) => {
   const userId = req.user.id;
 
@@ -88,7 +82,6 @@ exports.deleteUser = async (req, res) => {
 
     await Lesson.deleteMany({ createdBy: userId });
 
-    // Remove UserLesson links
     await UserLesson.deleteMany({ userId });
 
     res.status(200).json({ message: "User and associated data deleted successfully" });
@@ -102,7 +95,7 @@ exports.getUserLessons = async (req, res) => {
 
   try {
     const createdLessons = await Lesson.find({ createdBy: userId })
-      .select('-__v') // Exclude version field
+      .select('-__v') 
       .lean();
 
     const completedLessons = await UserLesson.find({ userId })
@@ -121,7 +114,6 @@ exports.getUserLessons = async (req, res) => {
       }
     });
 
-    // Convert map values back to array
     const formattedLessons = Array.from(lessonMap.values());
 
     res.status(200).json(formattedLessons);
@@ -146,7 +138,7 @@ exports.getUserStats = async (req, res) => {
       recentActivity: [],
       uniqueWords: new Set(),
       uniqueLessons: new Set(),
-      totalAttempts: 0 // Track total number of attempts
+      totalAttempts: 0 
     };
 
     for (const feedback of feedbacks) {
@@ -154,13 +146,11 @@ exports.getUserStats = async (req, res) => {
 
       if (!lesson) continue;
 
-      // Track unique lessons
       stats.uniqueLessons.add(lesson._id.toString());
 
-      // Track unique words
+    
       stats.uniqueWords.add(feedback.word);
 
-      // Add to total score and attempts
       stats.totalScore += feedback.finalMarks;
       stats.totalAttempts++;
 
@@ -183,7 +173,6 @@ exports.getUserStats = async (req, res) => {
       });
     }
 
-    // Calculate completed lessons and average score
     stats.completedLessons = stats.uniqueLessons.size;
     if (stats.totalAttempts > 0) {
       stats.averageScore = Math.round(stats.totalScore / stats.totalAttempts);
@@ -192,11 +181,10 @@ exports.getUserStats = async (req, res) => {
     stats.recentActivity.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     stats.totalLessons = await Lesson.countDocuments();
 
-    // Convert Sets to counts for the response
     stats.uniqueWordsCount = stats.uniqueWords.size;
     stats.uniqueLessonsCount = stats.uniqueLessons.size;
 
-    // Remove Sets from the response
+ 
     delete stats.uniqueWords;
     delete stats.uniqueLessons;
 
@@ -209,25 +197,23 @@ exports.getUserStats = async (req, res) => {
   }
 };
 
-// Add a completed lesson with the `completedAt` field
 exports.completeLesson = async (req, res) => {
   const userId = req.user.id;
   const { lessonId, learnedWords } = req.body;
 
   try {
-    // Check if the lesson was already completed
+   
     const existingLesson = await UserLesson.findOne({ userId, lessonId });
 
     if (existingLesson) {
       return res.status(400).json({ message: "Lesson already completed" });
     }
 
-    // Create a new UserLesson record with `completedAt`
     const newUserLesson = new UserLesson({
       userId,
       lessonId,
       learnedWords,
-      completedAt: Date.now() // Store the date and time of completion
+      completedAt: Date.now()
     });
 
     await newUserLesson.save();

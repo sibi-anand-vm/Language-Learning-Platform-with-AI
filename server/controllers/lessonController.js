@@ -4,14 +4,14 @@ const UserLesson = require("../models/UserLesson");
 // Get all website-created lessons
 const getAllLessons = async (req, res) => {
   try {
-    const lessons = await Lesson.find({ createdBy: null }); // Only website lessons
+    const lessons = await Lesson.find({ createdBy: null });
     res.json(lessons);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// Get lesson by ID (can be any type)
+
 const getLessonById = async (req, res) => {
   try {
     const lesson = await Lesson.findById(req.params.id);
@@ -31,17 +31,17 @@ const createLesson = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Validate language
+    
     if (!['English', 'Spanish', 'French', 'German', 'Chinese'].includes(language)) {
       return res.status(400).json({ message: "Invalid language" });
     }
 
-    // Validate difficulty
+  
     if (!['beginner', 'intermediate', 'advanced'].includes(difficulty)) {
       return res.status(400).json({ message: "Invalid difficulty level" });
     }
 
-    // Store lesson with createdBy field
+   
     const lesson = new Lesson({
       title,
       language,
@@ -53,7 +53,7 @@ const createLesson = async (req, res) => {
 
     await lesson.save();
 
-    // Store reference in UserLesson
+    
     const userLesson = new UserLesson({
       userId,
       lessonId: lesson._id,
@@ -86,13 +86,12 @@ const updateLesson = async (req, res) => {
   }
 };
 
-// Delete a lesson
 const deleteLesson = async (req, res) => {
   try {
     const deleted = await Lesson.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: "Lesson not found" });
 
-    // Also delete from UserLesson if it exists
+    
     await UserLesson.deleteMany({ lessonId: req.params.id });
 
     res.json({ message: "Lesson deleted successfully" });

@@ -43,12 +43,7 @@ const deleteAudio = async (req, res) => {
       if (audio.userId.toString() !== req.user.id) {
         return res.status(403).json({ message: "You are not authorized to delete this audio" });
       }
-      /*
-      if (audio.audioUrl) {
-        const publicId = audio.audioUrl.split("/").pop().split(".")[0]; // Extract the public ID from the URL
-        await cloudinary.uploader.destroy(publicId);
-      }
- */
+    
       await Audio.findByIdAndDelete(audioId);
   
       res.status(200).json({ message: "Audio deleted successfully" });

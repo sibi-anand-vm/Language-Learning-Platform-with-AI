@@ -6,6 +6,6 @@ router.delete("/deleteprofile", deleteUser);
 router.put("/updateprofile",updateUserProfile);
 router.get("/lessons",getUserLessons);
 router.get("/stats", getUserStats);
-// router.get("/profile", authenticateJWT, getUserProfile);
+
 
 module.exports = router;
